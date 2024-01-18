@@ -22,6 +22,7 @@ import org.hyperledger.besu.plugin.services.storage.KeyValueStorageTransaction;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -83,6 +84,11 @@ public class LimitedInMemoryKeyValueStorage implements KeyValueStorage {
     } finally {
       lock.unlock();
     }
+  }
+
+  @Override
+  public List<Optional<byte[]>> getMulti(final List<byte[]> keys) throws StorageException {
+    return List.of();
   }
 
   @Override

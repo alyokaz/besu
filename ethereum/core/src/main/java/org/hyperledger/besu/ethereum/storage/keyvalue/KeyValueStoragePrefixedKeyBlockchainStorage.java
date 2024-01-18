@@ -33,9 +33,11 @@ import org.hyperledger.besu.ethereum.rlp.RLP;
 import org.hyperledger.besu.plugin.services.storage.KeyValueStorage;
 import org.hyperledger.besu.plugin.services.storage.KeyValueStorageTransaction;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -113,6 +115,12 @@ public class KeyValueStoragePrefixedKeyBlockchainStorage implements BlockchainSt
   }
 
   @Override
+  public List<Optional<Hash>> getBlockHashMulti(final long[] blockNumbers) {
+    return getMulti(BLOCK_HASH_PREFIX, Arrays.stream(blockNumbers).mapToObj(UInt256::valueOf).collect(Collectors.toList()))
+            .stream().map(bytes -> bytes.map(this::bytesToHash)).collect(Collectors.toList());
+  }
+
+  @Override
   public Optional<Difficulty> getTotalDifficulty(final Hash blockHash) {
     return get(TOTAL_DIFFICULTY_PREFIX, blockHash).map(b -> Difficulty.wrap(Bytes32.wrap(b, 0)));
   }
@@ -138,6 +146,13 @@ public class KeyValueStoragePrefixedKeyBlockchainStorage implements BlockchainSt
 
   Optional<Bytes> get(final Bytes prefix, final Bytes key) {
     return blockchainStorage.get(Bytes.concatenate(prefix, key).toArrayUnsafe()).map(Bytes::wrap);
+  }
+
+  List<Optional<Bytes>> getMulti(final Bytes prefix, final List<Bytes> keys) {
+    List<byte[]> bytes = keys.stream().map(key -> Bytes.concatenate(prefix, key).toArrayUnsafe()).collect(Collectors.toList());
+    List<Optional<byte[]>> returnedList = blockchainStorage.getMulti(bytes);
+    List<Optional<Bytes>> finalList = returnedList.stream().map(key -> key.map(Bytes::wrap)).collect(Collectors.toList());
+    return finalList;
   }
 
   /**

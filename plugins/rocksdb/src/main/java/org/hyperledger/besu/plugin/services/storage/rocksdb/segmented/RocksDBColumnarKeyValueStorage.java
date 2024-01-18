@@ -31,6 +31,7 @@ import org.hyperledger.besu.plugin.services.storage.rocksdb.configuration.RocksD
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -321,6 +322,20 @@ public abstract class RocksDBColumnarKeyValueStorage implements SegmentedKeyValu
 
     try (final OperationTimer.TimingContext ignored = metrics.getReadLatency().startTimer()) {
       return Optional.ofNullable(getDB().get(safeColumnHandle(segment), readOptions, key));
+    } catch (final RocksDBException e) {
+      throw new StorageException(e);
+    }
+  }
+
+  @Override
+  public List<Optional<byte[]>> getMulti(final SegmentIdentifier segment, final List<byte[]> keys)
+          throws StorageException {
+    throwIfClosed();
+    ColumnFamilyHandle handle = safeColumnHandle(segment);
+    List<ColumnFamilyHandle> handles = Collections.nCopies(keys.size(), handle);
+
+    try (final OperationTimer.TimingContext ignored = metrics.getReadLatency().startTimer()) {
+      return getDB().multiGetAsList(readOptions, handles, keys).stream().map(Optional::ofNullable).collect(Collectors.toList());
     } catch (final RocksDBException e) {
       throw new StorageException(e);
     }

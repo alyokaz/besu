@@ -55,6 +55,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -107,14 +108,24 @@ public class TraceFilter extends TraceBlock {
       final long toBlock,
       final ArrayNodeWrapper resultArrayNode) {
 
+    final int BATCH_SIZE = 1000;
     long currentBlockNumber = fromBlock;
     Optional<Block> block =
         blockchainQueriesSupplier.get().getBlockchain().getBlockByNumber(currentBlockNumber);
-    while ((block.isEmpty() || block.get().getHeader().getParentHash().equals(Bytes32.ZERO))
-        && currentBlockNumber < toBlock) {
-      currentBlockNumber++;
-      block = blockchainQueriesSupplier.get().getBlockchain().getBlockByNumber(currentBlockNumber);
+    while (currentBlockNumber < toBlock) {
+      long[] batch = LongStream.rangeClosed(currentBlockNumber, Math.min(currentBlockNumber + BATCH_SIZE, toBlock)).toArray();
+      List<Optional<Block>> blocks = blockchainQueriesSupplier.get().getBlockchain().getBlockByNumberMulti(batch);
+      int blockNumber = 0;
+      block = blocks.get(blockNumber);
+      while ((block.isEmpty() || block.get().getHeader().getParentHash().equals(Bytes32.ZERO))
+              && blockNumber < BATCH_SIZE) {
+        block = blocks.get(blockNumber);
+        blockNumber++;
+      }
+      if (!block.isEmpty()) break;
+      currentBlockNumber += BATCH_SIZE;
     }
+
     if (block.isEmpty()) {
       return new JsonRpcSuccessResponse(
           requestContext.getRequest().getId(), resultArrayNode.getArrayNode());

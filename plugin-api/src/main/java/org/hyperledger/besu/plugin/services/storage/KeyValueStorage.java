@@ -18,6 +18,7 @@ import org.hyperledger.besu.plugin.Unstable;
 import org.hyperledger.besu.plugin.services.exception.StorageException;
 
 import java.io.Closeable;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -62,6 +63,8 @@ public interface KeyValueStorage extends Closeable {
    * @throws StorageException problem encountered during the retrieval attempt.
    */
   Optional<byte[]> get(byte[] key) throws StorageException;
+
+  List<Optional<byte[]>> getMulti(List<byte[]> keys) throws StorageException;
 
   /**
    * Returns a stream of all keys and values.

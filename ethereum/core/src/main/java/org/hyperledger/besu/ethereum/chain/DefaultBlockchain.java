@@ -338,6 +338,11 @@ public class DefaultBlockchain implements MutableBlockchain {
   }
 
   @Override
+  public List<Optional<Hash>> getBlockHashByNumberMulti(final long[] numbers) {
+    return blockchainStorage.getBlockHashMulti(numbers);
+  }
+
+  @Override
   public Optional<Difficulty> getTotalDifficultyByHash(final Hash blockHeaderHash) {
     return totalDifficultyCache
         .map(

@@ -42,6 +42,8 @@ public interface BlockchainStorage {
 
   Optional<Hash> getBlockHash(long blockNumber);
 
+  List<Optional<Hash>> getBlockHashMulti(long[] blockNumbers);
+
   Optional<Difficulty> getTotalDifficulty(Hash blockHash);
 
   Optional<TransactionLocation> getTransactionLocation(Hash transactionHash);

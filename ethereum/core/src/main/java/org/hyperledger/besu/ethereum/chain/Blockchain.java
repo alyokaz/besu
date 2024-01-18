@@ -27,6 +27,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /** An interface for reading data from the blockchain. */
 public interface Blockchain {
@@ -108,6 +109,10 @@ public interface Blockchain {
     return getBlockHashByNumber(number).flatMap(this::getBlockByHash);
   }
 
+  default List<Optional<Block>> getBlockByNumberMulti(final long[] numbers) {
+    return getBlockHashByNumberMulti(numbers).stream().map(hash -> hash.flatMap(this::getBlockByHash)).collect(Collectors.toList());
+  }
+
   /**
    * Checks whether the block corresponding to the given hash is on the canonical chain.
    *
@@ -183,6 +188,8 @@ public interface Blockchain {
    * @return The hash of the block at the given height.
    */
   Optional<Hash> getBlockHashByNumber(long number);
+
+  List<Optional<Hash>> getBlockHashByNumberMulti(long[] numbers);
 
   /**
    * Returns the total difficulty (cumulative difficulty up to and including the target block) of

@@ -22,6 +22,7 @@ import org.hyperledger.besu.plugin.services.storage.SegmentedKeyValueStorage;
 import org.hyperledger.besu.plugin.services.storage.SegmentedKeyValueStorageTransaction;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -71,6 +72,12 @@ public class SegmentedKeyValueStorageAdapter implements KeyValueStorage {
   public Optional<byte[]> get(final byte[] key) throws StorageException {
     throwIfClosed();
     return storage.get(segmentIdentifier, key);
+  }
+
+  @Override
+  public List<Optional<byte[]>> getMulti(final List<byte[]> keys) throws StorageException {
+    throwIfClosed();
+    return storage.getMulti(segmentIdentifier, keys);
   }
 
   @Override
